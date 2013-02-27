@@ -20,7 +20,7 @@ module Sunspot
       # as the primary key, you can add additional statements to the migration to do so.
       class ActiveRecordImpl < ActiveRecord::Base
         include Entry
-        
+
         self.table_name = "sunspot_index_queue_entries"
 
         class << self
@@ -29,7 +29,7 @@ module Sunspot
             conditions = queue.class_names.empty? ? {} : {:record_class_name => queue.class_names}
             count(:conditions => conditions)
           end
-          
+
           # Implementation of the ready_count method.
           def ready_count(queue)
             conditions = ["#{connection.quote_column_name('run_at')} <= ?", Time.now.utc]
@@ -65,7 +65,7 @@ module Sunspot
             conditions = queue.class_names.empty? ? {} : {:record_class_name => queue.class_names}
             update_all({:run_at => Time.now.utc, :attempts => 0, :error => nil, :lock => nil}, conditions)
           end
-          
+
           # Implementation of the next_batch! method.
           def next_batch!(queue)
             conditions = ["#{connection.quote_column_name('run_at')} <= ?", Time.now.utc]
@@ -90,12 +90,12 @@ module Sunspot
             queue_entry.run_at = Time.now.utc
             queue_entry.save!
           end
-          
+
           # Implementation of the delete_entries method.
           def delete_entries(entries)
             delete_all(:id => entries)
           end
-          
+
           # Create the table used to store the queue in the database.
           def create_table
             connection.create_table table_name do |t|
@@ -118,7 +118,7 @@ module Sunspot
         def set_error!(error, retry_interval = nil)
           self.attempts += 1
           self.run_at = (retry_interval * attempts).from_now.utc if retry_interval
-          self.error = "#{error.class.name}: #{error.message}\n#{error.backtrace.join("\n")[0, 4000]}"
+          self.error = "#{error.class.name}: #{error.message}\n#{error.backtrace.join("\n")}"[0, 4000]
           self.lock = nil
           begin
             save!

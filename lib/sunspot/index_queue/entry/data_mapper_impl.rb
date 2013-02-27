@@ -14,7 +14,7 @@ module Sunspot
       class DataMapperImpl
         include DataMapper::Resource
         include Entry
-        
+
         storage_names[:default] = "sunspot_index_queue_entries"
         property :id, Serial
         property :run_at, Time, :index => :run_at
@@ -25,14 +25,14 @@ module Sunspot
         property :lock, Integer
         property :error, String
         property :attempts, Integer, :default => 0
-        
+
         class << self
           # Implementation of the total_count method.
           def total_count(queue)
             conditions = queue.class_names.empty? ? {} : {:record_class_name => queue.class_names}
             count(conditions)
           end
-          
+
           # Implementation of the ready_count method.
           def ready_count(queue)
             conditions = {:run_at.lte => Time.now.utc}
@@ -59,7 +59,7 @@ module Sunspot
             conditions = queue.class_names.empty? ? {} : {:record_class_name => queue.class_names}
             all(conditions).update!(:run_at => Time.now.utc, :attempts => 0, :error => nil, :lock => nil)
           end
-          
+
           # Implementation of the next_batch! method.
           def next_batch!(queue)
             conditions = {:run_at.lte => Time.now.utc}
@@ -81,7 +81,7 @@ module Sunspot
             queue_entry.run_at = Time.now.utc
             queue_entry.save!
           end
-          
+
           # Implementation of the delete_entries method.
           def delete_entries(entries)
             all(:id => entries.map(&:id)).destroy!
@@ -92,7 +92,7 @@ module Sunspot
         def set_error!(error, retry_interval = nil)
           self.attempts += 1
           self.run_at = Time.now.utc + (retry_interval * attempts) if retry_interval
-          self.error = "#{error.class.name}: #{error.message}\n#{error.backtrace.join("\n")[0, 4000]}"
+          self.error = "#{error.class.name}: #{error.message}\n#{error.backtrace.join("\n")}"[0, 4000]
           self.lock = nil
           begin
             save!

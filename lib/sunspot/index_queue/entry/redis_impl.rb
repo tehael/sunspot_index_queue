@@ -175,7 +175,7 @@ module Sunspot
         def set_error! (error, retry_interval = nil)
           self.attempts += 1
           self.run_at = Time.now.utc + (retry_interval * attempts) if retry_interval
-          self.error = "#{error.class.name}: #{error.message}\n#{error.backtrace.join("\n")[0, 4000]}"
+          self.error = "#{error.class.name}: #{error.message}\n#{error.backtrace.join("\n")}"[0, 4000]
           begin
             self.class.connection.hset(self.class.datastore_name, "#{self.record_class_name}_#{self.record_id}", self.json_formatted)
           rescue => e
